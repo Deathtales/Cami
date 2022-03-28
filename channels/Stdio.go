@@ -35,7 +35,7 @@ type StreamOutputChannel interface {
 	io.Closer
 }
 
-//
+//Channel that handles IO on classic text reader/writers
 type StreamIOChannel struct {
 	input  io.Reader
 	output io.Writer
@@ -70,6 +70,8 @@ func (s StreamIOChannel) Receive(output chan core.Message) error {
 		}
 	}
 
+	close(output)
+
 	return scanner.Err()
 }
 
@@ -77,15 +79,15 @@ func (s StreamIOChannel) Send(m core.Message) error {
 	if s.output == nil {
 		return fmt.Errorf("this StreamIO channel doesn't accept outputs")
 	}
-	fmt.Fprint(s.output, m.Payload)
+	fmt.Fprintln(s.output, m.Payload)
 	return nil
 }
 
 var (
-	StdInChannel StreamInputChannel = StreamIOChannel{
+	StdInChannel core.InputChannel = StreamIOChannel{
 		input: os.Stdin,
 	}
-	StdOutchannel StreamOutputChannel = StreamIOChannel{
+	StdOutchannel core.OutputChannel = StreamIOChannel{
 		output: os.Stdout,
 	}
 	StdErrChannel StreamOutputChannel = StreamIOChannel{
